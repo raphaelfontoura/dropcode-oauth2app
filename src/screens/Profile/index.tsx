@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 
 import { ProfileHeader } from '../../components/ProfileHeader';
@@ -10,12 +10,40 @@ import { Button } from '../../components/Button';
 import { styles } from './styles';
 import { theme } from '../../styles/theme';
 
+type Params = {
+  token: string;
+}
+
+type Profile = {
+  email: string;
+  family_name: string;
+  given_name: string;
+  locale: string;
+  name: string;
+  picture: string;
+}
+
 export function Profile() {
+  const [profile, setProfile] = useState<Profile>();
+
+  const route = useRoute();
   const navigation = useNavigation();
+
+  const { token } = route.params as Params;
 
   async function handleLogout() {
     navigation.navigate('SignIn');
   }
+
+  async function loadProfile() {
+    const response = await fetch(`https://www.googleapis.com/oauth2/v2/userinfo?alt=json&access_token=${token}`);
+    const userInfo = await response.json() as Profile;
+    setProfile(userInfo);
+  }
+
+  useEffect(() => {
+    loadProfile();
+  })
 
   return (
     <View style={styles.container}>
@@ -24,17 +52,17 @@ export function Profile() {
       <View style={styles.content}>
         <View style={styles.profile}>
           <Avatar
-            source={{ uri: 'https://github.com/rodrigorgtic.png' }}
+            source={{ uri: profile?.picture }}
           />
 
           <Text style={styles.name}>
-            Rodrigo Gonçalves
+            {profile?.name}
           </Text>
 
           <View style={styles.email}>
             <Feather name="mail" color={theme.colors.secondary} size={18} />
             <Text style={styles.emailText}>
-              rodrigo.goncalves@rocketseat.team
+              {profile?.email}
             </Text>
           </View>
         </View>
@@ -50,7 +78,7 @@ export function Profile() {
               Nome
             </Text>
             <Text style={styles.text}>
-              Rodrigo
+              {profile?.given_name}
             </Text>
           </View>
 
@@ -64,7 +92,7 @@ export function Profile() {
               Sobrenome
             </Text>
             <Text style={styles.text}>
-              Gonçalves
+              {profile?.family_name}
             </Text>
           </View>
         </View>
@@ -77,7 +105,7 @@ export function Profile() {
           />
 
           <Text style={styles.localeText}>
-            Localidade do perfil do usuário: pt-BR
+            Localidade do perfil do usuário: {profile?.locale}
           </Text>
         </View>
 
