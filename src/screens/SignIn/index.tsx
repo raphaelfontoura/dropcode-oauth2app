@@ -33,7 +33,8 @@ export function SignIn() {
     const { type, params } = await AuthSession
       .startAsync({ authUrl }) as AuthResponse;
 
-    navigation.navigate('Profile', { token: params.access_token });
+    if (type === 'success')
+      navigation.navigate('Profile', { token: params.access_token });
   }
 
   return (
